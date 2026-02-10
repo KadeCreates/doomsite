@@ -230,7 +230,7 @@ export default function Hero() {
             whileTap={{ scale: 0.95 }}
             className="group relative px-8 py-3 glass rounded-full font-mono text-sm text-white/90 hover:text-white transition-all overflow-hidden"
           >
-            <span className="relative z-10">View Work</span>
+            <span className="relative z-10">A Word From Me</span>
             <motion.div
               className="absolute inset-0 bg-white/5"
               initial={{ scale: 0, opacity: 0 }}
