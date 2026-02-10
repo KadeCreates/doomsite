@@ -130,7 +130,7 @@ export default function Hero() {
             whileTap={{ scale: 0.95 }}
             className="px-8 py-3 border border-white/20 rounded-full font-mono text-sm text-white/80 hover:text-white transition-colors backdrop-blur-sm bg-white/5"
           >
-            View Work
+            Word From Me
           </motion.a>
           <motion.a
             href="#contact"
