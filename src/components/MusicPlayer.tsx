@@ -68,48 +68,78 @@ export default function MusicPlayer() {
 
   return (
     <motion.div
-      initial={{ y: 100, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ delay: 1.5, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+      initial={{ y: 100, opacity: 0, scale: 0.9 }}
+      animate={{ y: 0, opacity: 1, scale: 1 }}
+      transition={{ 
+        delay: 2, 
+        duration: 1, 
+        ease: [0.22, 1, 0.36, 1] 
+      }}
       className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40"
     >
       <div className="relative">
-        {/* Glow effect */}
-        <div className="absolute inset-0 bg-white/5 blur-xl rounded-full scale-110 animate-glow" />
+        {/* Enhanced glow effect */}
+        <motion.div
+          animate={{
+            opacity: isPlaying ? [0.3, 0.5, 0.3] : 0.2,
+            scale: isPlaying ? [1, 1.05, 1] : 1,
+          }}
+          transition={{
+            duration: 2,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
+          className="absolute inset-0 bg-white/10 blur-2xl rounded-full"
+        />
         
-        {/* Player container */}
-        <div className="relative backdrop-blur-md bg-white/5 border border-white/10 rounded-full px-6 py-3 shadow-2xl">
+        {/* Player container with enhanced glass effect */}
+        <div className="relative glass-strong rounded-full px-6 py-3 shadow-2xl border-white/20">
           <div className="flex items-center gap-4 min-w-[320px]">
-            {/* Play/Pause button */}
+            {/* Play/Pause button with pulse effect */}
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
               onClick={togglePlay}
-              className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 transition-colors flex items-center justify-center group"
+              className="relative w-12 h-12 rounded-full glass hover:glass-strong transition-all flex items-center justify-center group overflow-hidden"
             >
+              {/* Pulse effect when playing */}
+              {isPlaying && (
+                <motion.div
+                  animate={{
+                    scale: [1, 1.5],
+                    opacity: [0.5, 0],
+                  }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                  }}
+                  className="absolute inset-0 bg-white/20 rounded-full"
+                />
+              )}
+              
               <AnimatePresence mode="wait">
                 {isPlaying ? (
                   <motion.svg
                     key="pause"
-                    initial={{ scale: 0, rotate: -180 }}
+                    initial={{ scale: 0, rotate: -90 }}
                     animate={{ scale: 1, rotate: 0 }}
-                    exit={{ scale: 0, rotate: 180 }}
-                    transition={{ duration: 0.3 }}
-                    className="w-4 h-4 text-white"
+                    exit={{ scale: 0, rotate: 90 }}
+                    transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                    className="w-5 h-5 text-white relative z-10"
                     fill="currentColor"
                     viewBox="0 0 24 24"
                   >
-                    <rect x="6" y="4" width="4" height="16" />
-                    <rect x="14" y="4" width="4" height="16" />
+                    <rect x="6" y="4" width="4" height="16" rx="1" />
+                    <rect x="14" y="4" width="4" height="16" rx="1" />
                   </motion.svg>
                 ) : (
                   <motion.svg
                     key="play"
-                    initial={{ scale: 0, rotate: -180 }}
+                    initial={{ scale: 0, rotate: -90 }}
                     animate={{ scale: 1, rotate: 0 }}
-                    exit={{ scale: 0, rotate: 180 }}
-                    transition={{ duration: 0.3 }}
-                    className="w-4 h-4 text-white ml-0.5"
+                    exit={{ scale: 0, rotate: 90 }}
+                    transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                    className="w-5 h-5 text-white ml-0.5 relative z-10"
                     fill="currentColor"
                     viewBox="0 0 24 24"
                   >
@@ -119,26 +149,45 @@ export default function MusicPlayer() {
               </AnimatePresence>
             </motion.button>
 
-            {/* Progress bar */}
-            <div className="flex-1 space-y-1">
+            {/* Progress bar with enhanced styling */}
+            <div className="flex-1 space-y-2">
               <div
                 onClick={handleProgressClick}
-                className="h-1 bg-white/10 rounded-full overflow-hidden cursor-pointer group"
+                className="h-2 bg-white/5 rounded-full overflow-hidden cursor-pointer group relative"
               >
                 <motion.div
-                  className="h-full bg-white/60 group-hover:bg-white/80 transition-colors"
+                  className="h-full bg-gradient-to-r from-white/60 to-white/80 relative"
                   initial={{ width: 0 }}
                   animate={{ width: `${progress}%` }}
                   transition={{ duration: 0.1 }}
+                >
+                  {/* Shimmer effect on progress bar */}
+                  <motion.div
+                    animate={{
+                      x: ['-100%', '100%'],
+                    }}
+                    transition={{
+                      duration: 2,
+                      repeat: Infinity,
+                      ease: 'linear',
+                    }}
+                    className="absolute inset-0 w-1/3 bg-gradient-to-r from-transparent via-white/40 to-transparent"
+                  />
+                </motion.div>
+                
+                {/* Hover indicator */}
+                <motion.div
+                  className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                  style={{ left: `${progress}%`, marginLeft: '-6px' }}
                 />
               </div>
-              <div className="flex justify-between text-xs font-mono text-white/40">
+              <div className="flex justify-between text-xs font-mono text-white/50">
                 <span>{formatTime(currentTime)}</span>
                 <span>{formatTime(duration)}</span>
               </div>
             </div>
 
-            {/* Volume control */}
+            {/* Volume control with enhanced interaction */}
             <div
               className="relative"
               onMouseEnter={() => setShowVolume(true)}
@@ -146,10 +195,17 @@ export default function MusicPlayer() {
             >
               <motion.button
                 whileHover={{ scale: 1.1 }}
-                className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 transition-colors flex items-center justify-center"
+                whileTap={{ scale: 0.95 }}
+                className="w-10 h-10 rounded-full glass hover:glass-strong transition-all flex items-center justify-center"
               >
-                <svg
-                  className="w-4 h-4 text-white"
+                <motion.svg
+                  animate={{
+                    scale: volume > 0 ? [1, 1.1, 1] : 1,
+                  }}
+                  transition={{
+                    duration: 0.3,
+                  }}
+                  className="w-5 h-5 text-white"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -160,18 +216,19 @@ export default function MusicPlayer() {
                     strokeWidth={2}
                     d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"
                   />
-                </svg>
+                </motion.svg>
               </motion.button>
 
               <AnimatePresence>
                 {showVolume && (
                   <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2"
+                    initial={{ opacity: 0, y: 10, scale: 0.9 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.9 }}
+                    transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                    className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2"
                   >
-                    <div className="bg-black/80 backdrop-blur-md border border-white/10 rounded-lg p-3 shadow-xl">
+                    <div className="glass-strong rounded-xl p-4 shadow-xl">
                       <input
                         type="range"
                         min="0"
@@ -179,7 +236,7 @@ export default function MusicPlayer() {
                         step="0.01"
                         value={volume}
                         onChange={handleVolumeChange}
-                        className="w-24 h-1 accent-white/60 bg-white/10 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white"
+                        className="w-28 h-1.5 accent-white/80 bg-white/10 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-lg hover:[&::-webkit-slider-thumb]:scale-110 transition-transform"
                         style={{
                           writingMode: 'vertical-lr',
                           direction: 'rtl',
