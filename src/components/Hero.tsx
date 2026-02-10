@@ -184,7 +184,7 @@ export default function Hero() {
         {/* Subtitle with glass container */}
         <motion.div variants={itemVariants} className="mb-6">
           <p className="font-display text-2xl md:text-3xl text-white/70 tracking-wide inline-block px-8 py-3 glass-strong rounded-2xl">
-            Creative Developer & Designer
+            Roblox Developer & Cyber-Security analyst
           </p>
         </motion.div>
 
