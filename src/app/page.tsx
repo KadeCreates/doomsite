@@ -24,10 +24,10 @@ export default function Home() {
           className="text-center max-w-4xl"
         >
           <h2 className="font-display text-5xl md:text-7xl text-white mb-8 font-light tracking-tight">
-            Selected Work
+            Nourish your mind, with the fruits of knowledge
           </h2>
           <p className="font-mono text-white/40 text-sm md:text-base">
-            Coming soon. This space will showcase my latest projects and creative endeavors.
+            It's important that you remember that your outlook on life is influenced by one's ability to think.
           </p>
         </motion.div>
       </section>
@@ -54,18 +54,18 @@ export default function Home() {
               whileTap={{ scale: 0.95 }}
               className="px-10 py-4 border border-white/20 rounded-full font-mono text-sm text-white/80 hover:text-white transition-colors backdrop-blur-sm bg-white/5"
             >
-              hello@doom.lat
+              Discord : doomwrites
             </motion.a>
             
             <motion.a
-              href="https://github.com/doom"
+              href="https://github.com/KadeCreates"
               target="_blank"
               rel="noopener noreferrer"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               className="px-10 py-4 rounded-full font-mono text-sm text-black bg-white hover:bg-white/90 transition-colors"
             >
-              GitHub
+              Github
             </motion.a>
           </div>
         </motion.div>
