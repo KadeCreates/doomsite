@@ -193,8 +193,9 @@ export default function Hero() {
           variants={itemVariants}
           className="font-mono text-sm md:text-base text-white/50 max-w-2xl mx-auto leading-relaxed px-6"
         >
-          Crafting digital experiences at the intersection of art and technology.
-          Specializing in minimalist design, fluid animations, and immersive web experiences.
+                       Passionate Roblox developer, and cyber-security analyst. 
+          Most notably recognized for the development of the best external Blade Ball AutoParry,
+                                during the widespread Roblox ban wave.
         </motion.p>
 
         {/* Bottom line with shimmer */}
