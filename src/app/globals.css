@@ -21,21 +21,37 @@ body {
   margin: 0;
   padding: 0;
   overflow-x: hidden;
-  background: linear-gradient(135deg, #000000 0%, #1a1a1a 25%, #333333 50%, #1a1a1a 75%, #000000 100%);
-  background-size: 400% 400%;
-  animation: gradientShift 15s ease infinite;
+  background: radial-gradient(ellipse at top, #1a1a1a 0%, #000000 50%, #0a0a0a 100%);
   position: relative;
+  min-height: 100vh;
 }
 
-@keyframes gradientShift {
-  0% {
-    background-position: 0% 50%;
+/* Animated mesh gradient background */
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.02) 0%, transparent 50%),
+    radial-gradient(circle at 40% 20%, rgba(255, 255, 255, 0.015) 0%, transparent 50%);
+  animation: meshMove 20s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes meshMove {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
   }
-  50% {
-    background-position: 100% 50%;
+  33% {
+    transform: translate(-50px, 50px) scale(1.05);
   }
-  100% {
-    background-position: 0% 50%;
+  66% {
+    transform: translate(50px, -30px) scale(0.98);
   }
 }
 
@@ -48,7 +64,7 @@ body.custom-cursor * {
   cursor: none;
 }
 
-/* Radial gradient following cursor */
+/* Enhanced radial gradient following cursor */
 body::before {
   content: '';
   position: fixed;
@@ -58,13 +74,15 @@ body::before {
   height: 100%;
   pointer-events: none;
   background: radial-gradient(
-    600px circle at var(--cursor-x) var(--cursor-y),
-    rgba(255, 255, 255, 0.06),
-    transparent 40%
+    800px circle at var(--cursor-x) var(--cursor-y),
+    rgba(255, 255, 255, 0.08),
+    rgba(255, 255, 255, 0.03) 40%,
+    transparent 70%
   );
   z-index: 1;
   opacity: 0;
-  transition: opacity 0.3s ease;
+  transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  mix-blend-mode: screen;
 }
 
 body.cursor-active::before {
@@ -73,45 +91,119 @@ body.cursor-active::before {
 
 /* Selection colors */
 ::selection {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.15);
   color: #ffffff;
 }
 
 ::-moz-selection {
-  background: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.15);
   color: #ffffff;
 }
 
-/* Scrollbar styling */
+/* Scrollbar styling - glassy theme */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0a0a0a;
+  background: rgba(0, 0, 0, 0.3);
+  border-left: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #333;
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  border: 2px solid rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Glass morphism utility */
+.glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    0 8px 32px 0 rgba(0, 0, 0, 0.37),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+}
+
+.glass-strong {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(30px) saturate(200%);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 
+    0 8px 32px 0 rgba(0, 0, 0, 0.5),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 /* Utility classes */
 @layer utilities {
   .text-gradient {
-    background: linear-gradient(135deg, #ffffff 0%, #888888 100%);
+    background: linear-gradient(135deg, #ffffff 0%, #b0b0b0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .text-gradient-soft {
+    background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.5) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
   
   .border-gradient {
-    border: 1px solid;
-    border-image-slice: 1;
-    border-image-source: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.05));
+    position: relative;
   }
+  
+  .border-gradient::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.05));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+  }
+}
+
+/* Shimmer effect */
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.shimmer {
+  animation: shimmer 3s infinite;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.03),
+    transparent
+  );
+  background-size: 1000px 100%;
+}
+
+/* Smooth page transitions */
+@keyframes fadeInPage {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+body {
+  animation: fadeInPage 0.3s ease-out;
 }
