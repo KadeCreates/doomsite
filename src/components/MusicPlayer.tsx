@@ -252,7 +252,7 @@ export default function MusicPlayer() {
       </div>
 
       {/* Audio element */}
-      <audio ref={audioRef} src="/music/track.mp3" />
+      <audio ref={audioRef} src="/music/track.mp3" crossOrigin="anonymous" preload="metadata" />
     </motion.div>
   );
 }
