@@ -9,44 +9,77 @@ export default function MusicPlayer() {
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(0.7);
   const [showVolume, setShowVolume] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
+    // Set initial volume
+    audio.volume = volume;
+
     const updateTime = () => setCurrentTime(audio.currentTime);
-    const updateDuration = () => setDuration(audio.duration);
+    const updateDuration = () => {
+      setDuration(audio.duration);
+      setIsLoaded(true);
+      console.log('Audio loaded, duration:', audio.duration);
+    };
     const handleEnded = () => setIsPlaying(false);
+    const handleError = (e: Event) => {
+      console.error('Audio error:', e);
+      setError('Could not load audio file. Make sure track.mp3 exists in public/music/');
+      setIsPlaying(false);
+    };
+    const handleCanPlay = () => {
+      console.log('Audio can play');
+      setIsLoaded(true);
+      setError(null);
+    };
 
     audio.addEventListener('timeupdate', updateTime);
     audio.addEventListener('loadedmetadata', updateDuration);
     audio.addEventListener('ended', handleEnded);
+    audio.addEventListener('error', handleError);
+    audio.addEventListener('canplay', handleCanPlay);
+
+    // Try to load the audio
+    audio.load();
 
     return () => {
       audio.removeEventListener('timeupdate', updateTime);
       audio.removeEventListener('loadedmetadata', updateDuration);
       audio.removeEventListener('ended', handleEnded);
+      audio.removeEventListener('error', handleError);
+      audio.removeEventListener('canplay', handleCanPlay);
     };
   }, []);
 
-  const togglePlay = () => {
-    if (audioRef.current) {
+  const togglePlay = async () => {
+    if (!audioRef.current) return;
+    
+    try {
       if (isPlaying) {
         audioRef.current.pause();
+        setIsPlaying(false);
       } else {
-        audioRef.current.play();
+        await audioRef.current.play();
+        setIsPlaying(true);
+        setError(null);
       }
-      setIsPlaying(!isPlaying);
+    } catch (err) {
+      console.error('Playback error:', err);
+      setError('Playback failed. Browser might be blocking autoplay.');
+      setIsPlaying(false);
     }
   };
 
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!audioRef.current || !isLoaded) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const percent = (e.clientX - rect.left) / rect.width;
-    if (audioRef.current) {
-      audioRef.current.currentTime = percent * duration;
-    }
+    audioRef.current.currentTime = percent * duration;
   };
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -92,6 +125,19 @@ export default function MusicPlayer() {
           className="absolute inset-0 bg-white/10 blur-2xl rounded-full"
         />
         
+        {/* Error message */}
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="absolute bottom-full mb-4 left-1/2 -translate-x-1/2 whitespace-nowrap"
+          >
+            <div className="glass-strong rounded-lg px-4 py-2 text-xs text-white/80">
+              {error}
+            </div>
+          </motion.div>
+        )}
+
         {/* Player container with enhanced glass effect */}
         <div className="relative glass-strong rounded-full px-6 py-3 shadow-2xl border-white/20">
           <div className="flex items-center gap-4 min-w-[320px]">
@@ -100,7 +146,8 @@ export default function MusicPlayer() {
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
               onClick={togglePlay}
-              className="relative w-12 h-12 rounded-full glass hover:glass-strong transition-all flex items-center justify-center group overflow-hidden"
+              disabled={!isLoaded}
+              className="relative w-12 h-12 rounded-full glass hover:glass-strong transition-all flex items-center justify-center group overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {/* Pulse effect when playing */}
               {isPlaying && (
@@ -252,7 +299,11 @@ export default function MusicPlayer() {
       </div>
 
       {/* Audio element */}
-      <audio ref={audioRef} src="/music/track.mp3" crossOrigin="anonymous" preload="metadata" />
+      <audio 
+        ref={audioRef} 
+        src="/music/track.mp3" 
+        preload="metadata"
+      />
     </motion.div>
   );
 }
