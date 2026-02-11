@@ -3,7 +3,16 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// Define your playlist here - add or remove tracks as needed
+const PLAYLIST = [
+  { id: 1, name: 'Track 1', src: '/music/track.mp3' },
+  { id: 2, name: 'Track 2', src: '/music/track2.mp3' },
+  { id: 3, name: 'Track 3', src: '/music/track3.mp3' },
+  // Add more tracks here as needed
+];
+
 export default function MusicPlayer() {
+  const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -11,7 +20,51 @@ export default function MusicPlayer() {
   const [showVolume, setShowVolume] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
+  const [hasInteracted, setHasInteracted] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
+
+  const currentTrack = PLAYLIST[currentTrackIndex];
+
+  // Handle autoplay on first user interaction
+  useEffect(() => {
+    if (!hasInteracted) return;
+    
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const attemptAutoplay = async () => {
+      try {
+        await audio.play();
+        setIsPlaying(true);
+        console.log('Autoplay successful');
+      } catch (err) {
+        console.log('Autoplay prevented by browser:', err);
+        setError('Click play to start music');
+      }
+    };
+
+    if (isLoaded && !isPlaying) {
+      attemptAutoplay();
+    }
+  }, [isLoaded, hasInteracted]);
+
+  // Enable autoplay on any user interaction
+  useEffect(() => {
+    const enableAutoplay = () => {
+      if (!hasInteracted) {
+        setHasInteracted(true);
+      }
+    };
+
+    // Listen for any click or key press
+    window.addEventListener('click', enableAutoplay, { once: true });
+    window.addEventListener('keypress', enableAutoplay, { once: true });
+
+    return () => {
+      window.removeEventListener('click', enableAutoplay);
+      window.removeEventListener('keypress', enableAutoplay);
+    };
+  }, [hasInteracted]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -26,10 +79,13 @@ export default function MusicPlayer() {
       setIsLoaded(true);
       console.log('Audio loaded, duration:', audio.duration);
     };
-    const handleEnded = () => setIsPlaying(false);
+    const handleEnded = () => {
+      // Auto-play next track when current ends
+      nextTrack();
+    };
     const handleError = (e: Event) => {
       console.error('Audio error:', e);
-      setError('Could not load audio file. Make sure track.mp3 exists in public/music/');
+      setError('Could not load audio file');
       setIsPlaying(false);
     };
     const handleCanPlay = () => {
@@ -44,7 +100,7 @@ export default function MusicPlayer() {
     audio.addEventListener('error', handleError);
     audio.addEventListener('canplay', handleCanPlay);
 
-    // Try to load the audio
+    // Load the audio
     audio.load();
 
     return () => {
@@ -54,10 +110,12 @@ export default function MusicPlayer() {
       audio.removeEventListener('error', handleError);
       audio.removeEventListener('canplay', handleCanPlay);
     };
-  }, []);
+  }, [currentTrackIndex]); // Reload when track changes
 
   const togglePlay = async () => {
     if (!audioRef.current) return;
+    
+    setHasInteracted(true); // Mark that user has interacted
     
     try {
       if (isPlaying) {
@@ -70,8 +128,65 @@ export default function MusicPlayer() {
       }
     } catch (err) {
       console.error('Playback error:', err);
-      setError('Playback failed. Browser might be blocking autoplay.');
+      setError('Playback failed');
       setIsPlaying(false);
+    }
+  };
+
+  const nextTrack = async () => {
+    setIsLoaded(false);
+    setCurrentTime(0);
+    const wasPlaying = isPlaying;
+    setIsPlaying(false);
+    
+    // Move to next track, loop back to start if at end
+    setCurrentTrackIndex((prev) => (prev + 1) % PLAYLIST.length);
+    
+    // If was playing, continue playing the next track
+    if (wasPlaying && audioRef.current) {
+      setTimeout(async () => {
+        try {
+          await audioRef.current?.play();
+          setIsPlaying(true);
+        } catch (err) {
+          console.error('Error playing next track:', err);
+        }
+      }, 100);
+    }
+  };
+
+  const previousTrack = async () => {
+    setIsLoaded(false);
+    setCurrentTime(0);
+    const wasPlaying = isPlaying;
+    setIsPlaying(false);
+    
+    // If more than 3 seconds into track, restart current track
+    // Otherwise go to previous track
+    if (currentTime > 3) {
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0;
+        if (wasPlaying) {
+          await audioRef.current.play();
+          setIsPlaying(true);
+        }
+      }
+    } else {
+      // Move to previous track, loop to end if at start
+      setCurrentTrackIndex((prev) => 
+        prev === 0 ? PLAYLIST.length - 1 : prev - 1
+      );
+      
+      if (wasPlaying && audioRef.current) {
+        setTimeout(async () => {
+          try {
+            await audioRef.current?.play();
+            setIsPlaying(true);
+          } catch (err) {
+            console.error('Error playing previous track:', err);
+          }
+        }, 100);
+      }
     }
   };
 
@@ -125,12 +240,23 @@ export default function MusicPlayer() {
           className="absolute inset-0 bg-white/10 blur-2xl rounded-full"
         />
         
+        {/* Track name display */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 whitespace-nowrap"
+        >
+          <div className="glass-strong rounded-full px-4 py-1.5 text-xs text-white/70 font-mono">
+            {currentTrack.name}
+          </div>
+        </motion.div>
+
         {/* Error message */}
         {error && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="absolute bottom-full mb-4 left-1/2 -translate-x-1/2 whitespace-nowrap"
+            className="absolute bottom-full mb-16 left-1/2 -translate-x-1/2 whitespace-nowrap"
           >
             <div className="glass-strong rounded-lg px-4 py-2 text-xs text-white/80">
               {error}
@@ -140,7 +266,24 @@ export default function MusicPlayer() {
 
         {/* Player container with enhanced glass effect */}
         <div className="relative glass-strong rounded-full px-6 py-3 shadow-2xl border-white/20">
-          <div className="flex items-center gap-4 min-w-[320px]">
+          <div className="flex items-center gap-4 min-w-[400px]">
+            {/* Previous track button */}
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={previousTrack}
+              disabled={!isLoaded}
+              className="w-9 h-9 rounded-full glass hover:glass-strong transition-all flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <svg
+                className="w-4 h-4 text-white"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" />
+              </svg>
+            </motion.button>
+
             {/* Play/Pause button with pulse effect */}
             <motion.button
               whileHover={{ scale: 1.1 }}
@@ -194,6 +337,23 @@ export default function MusicPlayer() {
                   </motion.svg>
                 )}
               </AnimatePresence>
+            </motion.button>
+
+            {/* Next track button */}
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={nextTrack}
+              disabled={!isLoaded}
+              className="w-9 h-9 rounded-full glass hover:glass-strong transition-all flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <svg
+                className="w-4 h-4 text-white"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" />
+              </svg>
             </motion.button>
 
             {/* Progress bar with enhanced styling */}
@@ -301,7 +461,7 @@ export default function MusicPlayer() {
       {/* Audio element */}
       <audio 
         ref={audioRef} 
-        src="/music/track.mp3" 
+        src={currentTrack.src} 
         preload="metadata"
       />
     </motion.div>
